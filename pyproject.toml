@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "skillfactorymarketing"
+version = "0.1.0"
+description = ""
+authors = ["Aliaksei Yafremau <447654972g@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+aiogram = "^3.13.1"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
