@@ -1,4 +1,4 @@
-from aiogram import types, Router, F
+from aiogram import types, Router, F, Bot
 from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
@@ -26,7 +26,8 @@ class AddGoal(StatesGroup):
 async def answer(message: types.Message):
     global previous_bot_message
 
-    m = await message.answer("Привет, Я Бот Финансов. Выберите действие:", reply_markup=intro_kb) 
+    m = await message.answer("Привет, Я Бот Финансов. Выберите действие:", reply_markup=intro_kb)
+    previous_bot_message = m.message_id
 
 
 @user_router.callback_query(StateFilter("*"), F.data == "cancel")
@@ -41,7 +42,6 @@ async def cancel(callback_query: types.CallbackQuery, state: FSMContext):
     await answer(callback_query.message)
     
 
-
 @user_router.callback_query(StateFilter("*"), F.data == "back")
 async def cancel(callback_query: types.CallbackQuery, state: FSMContext):
     global previous_bot_message
@@ -52,7 +52,6 @@ async def cancel(callback_query: types.CallbackQuery, state: FSMContext):
         await state.clear()
         # await callback_query.message.edit_text("Действие отменено", reply_markup=add_goal_kb)
         await answer(callback_query.message)
-        return
     
     previous_state = await state.get_state()
     for step in AddGoal.__all_states__:
@@ -60,6 +59,7 @@ async def cancel(callback_query: types.CallbackQuery, state: FSMContext):
             await state.set_state(previous_state)
             await callback_query.message.edit_text(f"Вы вернулись к прошлому шагу \n{AddGoal.texts[previous_state.state]}", reply_markup=add_goal_kb)
         previous_state = step
+
 
 @user_router.callback_query(F.data == "add")
 async def add_goal(callback_query: types.CallbackQuery, state: FSMContext):
@@ -70,28 +70,45 @@ async def add_goal(callback_query: types.CallbackQuery, state: FSMContext):
 
 
 @user_router.message(AddGoal.name)
-async def add_name(message: types.Message, state: FSMContext):
+async def add_name(message: types.Message, bot: Bot, state: FSMContext):
     global previous_bot_message
 
     await state.update_data(name=message.text)
-    await message.answer("Введите сумму, которую вы хотите достичь", reply_markup=add_goal_kb)
+    await message.delete()
+    data = await state.get_data()
+    await bot.edit_message_text(f"Название: {data['name']}\n"
+                                "Введите сумму, которую вы хотите достичь",
+                                chat_id=message.chat.id,
+                                message_id=previous_bot_message,
+                                reply_markup=add_goal_kb)
     await state.set_state(AddGoal.amount)
 
 
 @user_router.message(AddGoal.amount)
-async def add_amount(message: types.Message, state: FSMContext):
+async def add_amount(message: types.Message, bot: Bot, state: FSMContext):
     global previous_bot_message
 
     await state.update_data(amount=message.text)
-    await message.answer("Введите срок,за который вы хотите достичь данной суммы", reply_markup=add_goal_kb)
+    await message.delete()
+    data = await state.get_data()
+    await bot.edit_message_text(f"Название: {data['name']}\n"
+                                f"умма: {data['amount']}\n"
+                                "Введите срок, за который вы хотите достичь данной суммы",
+                                chat_id=message.chat.id,
+                                message_id=previous_bot_message,
+                                reply_markup=add_goal_kb)
     await state.set_state(AddGoal.time)
 
 
 @user_router.message(AddGoal.time)
-async def add_time(message: types.Message, state: FSMContext):
+async def add_time(message: types.Message, bot: Bot, state: FSMContext):
     global previous_bot_message
-    
+
     await state.update_data(time=message.text)
     data = await state.get_data()
-    await message.answer(f"Вот результат:\n{str(data)}", reply_markup=reset_goal_kb)
+    await message.delete()
+    await bot.edit_message_text(f"Ваша цель: {data['name']}, сумма: {data['amount']}, срок: {data['time']}",
+                                chat_id=message.chat.id,
+                                message_id=previous_bot_message,
+                                reply_markup=reset_goal_kb)
     await state.clear()
