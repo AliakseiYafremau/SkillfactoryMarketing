@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telegram_bot
+    environment:
+      - TOKEN=${TOKEN}  # Убедитесь, что этот токен добавлен в .env файл или передан
+    restart: unless-stopped
