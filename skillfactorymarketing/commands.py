@@ -1,9 +1,7 @@
-from aiogram.types import BotCommand
+from aiogram.types import BotCommand  # Импортируем класс для создания команд бота
 
+# Определяем список команд для приватных чатов
 private = [
-    BotCommand(command='start', description='Старт'),
-    BotCommand(command='help', description='Помощь'),
-    BotCommand(command='add', description='Добавить цель'),
-    # BotCommand(command='cancel', description='Отменить'),
-    # BotCommand(command='back', description='Назад'),
+    BotCommand(command='start', description='Старт'),  # Команда /start с описанием "Старт"
+    BotCommand(command='add', description='Добавить цель'),  # Команда /add с описанием "Добавить цель"
 ]

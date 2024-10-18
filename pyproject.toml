@@ -8,6 +8,7 @@ authors = ["Aliaksei Yafremau <447654972g@gmail.com>"]
 python = "^3.12"
 aiogram = "^3.13.1"
 python-dotenv = "^1.0.1"
+sqlalchemy = "^2.0.36"
 
 
 [build-system]
