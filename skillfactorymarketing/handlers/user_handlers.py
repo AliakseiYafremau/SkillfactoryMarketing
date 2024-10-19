@@ -91,8 +91,8 @@ async def view_goals(callback_query: types.CallbackQuery):
         goals_text += (
             f"Цель: <b>{goal.name}</b>\n"
             f"Сумма: {goal.amount}₽\n"
-            f"Срок: {goal.time} месяцев\n"
-            f"Ежемесячные накопления: {goal.monthly_savings}₽\n\n"
+            f"Срок: {goal.time} месяца\n"
+            f"Ежемесячные накопления: {ceil(goal.monthly_savings)}₽\n\n"
         )
 
         # Добавляем инлайн-кнопку для удаления каждой цели
@@ -102,6 +102,9 @@ async def view_goals(callback_query: types.CallbackQuery):
                 callback_data=f"delete_goal:{goal.id}"  # Генерируем callback_data с идентификатором цели
             )]
         )
+
+    goal_list.append([types.InlineKeyboardButton(text="Назад", callback_data="start")])
+
     goal_kb = types.InlineKeyboardMarkup(inline_keyboard=goal_list)
     
     await callback_query.message.edit_text(goals_text, reply_markup=goal_kb, parse_mode=ParseMode.HTML)
@@ -112,7 +115,7 @@ async def view_goals(callback_query: types.CallbackQuery):
 # Хэндлер для нажатия кнопки "add" для начала ввода цели
 @user_router.callback_query(F.data == "add")
 async def add_goal(callback_query: types.CallbackQuery, state: FSMContext):
-    sent_message = await callback_query.message.edit_text("Введите название вашей цели", reply_markup=add_goal_kb)  # Редактируем сообщение для ввода названия цели
+    sent_message = await callback_query.message.edit_text("Введите вашу цель", reply_markup=add_goal_kb)  # Редактируем сообщение для ввода названия цели
     await state.set_state(AddGoal.name)  # Устанавливаем состояние для ввода названия
     await state.update_data(last_message_id=sent_message.message_id)  # Сохраняем ID последнего сообщения в FSM
 
@@ -127,7 +130,7 @@ async def add_name(message: types.Message, bot: Bot, state: FSMContext):
 
     # Обновляем последнее сообщение с введенным названием
     await bot.edit_message_text(
-        f"Название: <b>{data['name']}</b>\nВведите сумму(₽), которую вы хотите достичь",
+        f"Название: <b>{data['name']}</b>\nВведите сумму(<b>₽</b>), которую вы хотите достичь",
         chat_id=message.chat.id,
         message_id=last_message_id,
         reply_markup=add_goal_kb,
@@ -177,11 +180,11 @@ async def add_time(message: types.Message, bot: Bot, state: FSMContext):
         return
 
     # Обновляем последнее сообщение с итоговой информацией о цели
-    if data['time'] != 1:
+    if data['time'] == 1:
         await bot.edit_message_text(
-            f"Название: {data['name']}\n"
-            f"Сумма: {data['amount']}₽\n"
-            f"Срок: {data['time']} месяц\n\n"
+            f"<i>Название</i>: <b>{data['name']}</b>\n"
+            f"<i>Сумма</i>: <b>{data['amount']}₽</b>\n"
+            f"<i>Срок</i>: <b>{data['time']}</b> месяц\n\n"
             f"Вы сможете накопить на вашу цель({data['name']}) в течении {data['time']}, если будете откладывать в месяц по {result}₽ в месяц",
             chat_id=message.chat.id,
             message_id=last_message_id,
@@ -190,10 +193,10 @@ async def add_time(message: types.Message, bot: Bot, state: FSMContext):
         )
     else:
         await bot.edit_message_text(
-            f"Название: {data['name']}\n"
-            f"Сумма: {data['amount']}₽\n"
-            f"Срок: {data['time']} месяцев\n\n"
-            f"Вы сможете накопить на вашу цель({data['name']}) в течении {data['time']}, если будете откладывать в месяц по {result}₽ в месяц",
+            f"Название: <b>{data['name']}</b>\n"
+            f"Сумма: <b>{data['amount']}₽</b>\n"
+            f"Срок: <b>{data['time']}</b> месяца\n\n"
+            f"Вы сможете накопить на вашу цель({data['name']}) в течении {data['time']} месяцев, если будете откладывать в месяц по <b>{result}₽</b>",
             chat_id=message.chat.id,
             message_id=last_message_id,
             reply_markup=reset_goal_kb,
